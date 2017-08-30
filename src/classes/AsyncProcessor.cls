@@ -7,14 +7,19 @@ public with sharing class AsyncProcessor {
 
   List<AsyncUnit> queue;
   AsyncUnit onErrorAction;
-  Boolean ignore;
 
   public AsyncProcessor() {
     this.queue = new List<AsyncUnit>();
-    this.ignore = false;
   }
 
-  public AsyncProcessor add( AsyncUnit unit ) {
+  public AsyncProcessor( AsyncUnit unit ) {
+    this.queue = new List<AsyncUnit>();
+    if ( unit != null ) {
+      this.queue.add( unit );
+    }
+  }
+
+  public AsyncProcessor then( AsyncUnit unit ) {
     if ( unit != null ) {
       this.queue.add( unit );
     }
@@ -26,7 +31,7 @@ public with sharing class AsyncProcessor {
     return this;
   }
 
-  public AsyncProcessor onError( AsyncUnit unit ) {
+  public AsyncProcessor fail( AsyncUnit unit ) {
     if ( unit != null ) {
       this.onErrorAction = unit;
     }
@@ -37,7 +42,7 @@ public with sharing class AsyncProcessor {
     return this.queue.get( index );
   }
 
-  public AsyncUnit gerError() {
+  public AsyncUnit getError() {
     return this.onErrorAction;
   }
 
