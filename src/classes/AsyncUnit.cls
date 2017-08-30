@@ -6,58 +6,61 @@
  */
 public class AsyncUnit  implements Queueable, Database.AllowsCallouts {
 
+  Queueable currentQueueableJob;
+  Queueable successQueueableJob;
+  Queueable failQueueableJob;
   AsyncProcessor processor;
-  Asyncable currentAsyncJob;
-  Asyncable promise;
 
-  public AsyncUnit( AsyncProcessor processor ) {
-    this.processor = processor;
+  public AsyncUnit( Queueable queueableJob ) {
+    this.currentQueueableJob = queueableJob;
   }
 
-  public AsyncUnit( Asyncable promise ) {
-    this.promise = promise;
+  public AsyncUnit success( Queueable queueableJob ) {
+    this.successQueueableJob = queueableJob;
+    return this;
+  }
+
+  public AsyncUnit fail( Queueable queueableJob ) {
+    this.failQueueableJob = queueableJob;
+    return this;
+  }
+
+  public AsyncUnit setProcessor( AsyncProcessor processor ) {
+    this.processor = processor;
+    return this;
   }
 
   public void execute( QueueableContext context ) {
     try {
-      /* If processor isn't empty, obtain first async job from queue and do */
-      if ( this.processor != null) {
-        this.currentAsyncJob = processor.getFirstJob();
-        if ( this.currentAsyncJob != null ) {
-          this.currentAsyncJob.doJob();
-          /* If work is completed correctly, add onSuccess item the beginning of queue */
-          processor.add( this.currentAsyncJob.onSuccess() );
+      if ( currentQueueableJob != null ) {
+        currentQueueableJob.execute( context );
+        if ( successQueueableJob != null ) {
+          System.enqueueJob( 
+            new AsyncUnit( successQueueableJob ) 
+              .setProcessor( processor )
+          );
+          return;
         }
-        /* Go to the next step in queue */
-        System.enqueueJob( new AsyncUnit( processor ) );
-      } 
-      /* If instead of processor has provided the single promise, do job */
-      else if ( this.promise != null ) {
-        promise.doJob();
-         /* If work is completed correctly, do onSuccess item on the next step */
-        System.enqueueJob( new AsyncUnit( promise.onSuccess() ) );
+        if ( processor.isNotEmpty() ) {
+          System.enqueueJob( 
+            processor.getFirstJob()
+              .setProcessor( processor )
+          );
+          return;
+        }
       }
+      return;
     } catch ( Exception e ) {
-      if ( this.processor != null ) {
-        /* If work is completed with unhandled exception, add onFail item the beginning of queue */
-        Asyncable onFailAsyncJob = this.currentAsyncJob.onFail();
-        if ( onFailAsyncJob != null ) {
-          processor.add( onFailAsyncJob );
-          /* Go to the next step in queue */
-          System.enqueueJob( new AsyncUnit( processor ) );
-        } else {
-          /* If onFail item not provided for current async job, invoke geral error prom async processor */
-          if ( processor.isExceptionIgnored() ) {
-            System.enqueueJob( new AsyncUnit( processor ) );
-          } else {
-            System.enqueueJob( new AsyncUnit( processor.gerError() ) );
-          }
-        }
-      } else if ( this.promise != null ) {
-        Asyncable onFailAsyncJob = this.promise.onFail();
-        if ( onFailAsyncJob != null ) {
-          System.enqueueJob( new AsyncUnit( onFailAsyncJob ) );
-        }
+      if ( failQueueableJob != null ) {
+        System.enqueueJob( 
+          new AsyncUnit( failQueueableJob ) 
+            .setProcessor( processor )
+        );
+        return;
+      } else if ( processor.gerError() != null ) {
+        System.enqueueJob( 
+          new AsyncUnit( processor.gerError() ) 
+        );
       }
     }
   }
