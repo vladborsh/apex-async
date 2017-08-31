@@ -10,4 +10,4 @@ The core idea is in composing asynchronous parts of the complex flow into the si
 
 ## How to
 
-First, one or more classes which represent business logic should implement Queueable interface. Then create AsyncUnit instances from them. You can specify success flow or failure flow for every single unit. Please notes, if you've not specified failure flow, the processor will call the general on-error action. If general on-error action also haven't specified exception won't be processed.
+First, one or more classes which represent business logic should implement Queueable interface. Then create AsyncUnit instances from them. You can specify success flow or failure flow for every single unit. Concatenate async units with AsyncProcessor class and execute it. Please notes, if you've not specified failure flow, the processor will call the general on-error action. If general on-error action also haven't specified exception won't be processed.
