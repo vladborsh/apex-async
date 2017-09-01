@@ -10,6 +10,7 @@ public class AsyncUnit  implements Queueable, Database.AllowsCallouts {
   Queueable successQueueableJob;
   Queueable failQueueableJob;
   AsyncProcessor processor;
+  Object tempData;
 
   public AsyncUnit( Queueable queueableJob ) {
     this.currentQueueableJob = queueableJob;
@@ -33,8 +34,19 @@ public class AsyncUnit  implements Queueable, Database.AllowsCallouts {
   public void execute( QueueableContext context ) {
     try {
       if ( currentQueueableJob != null ) {
+        if ( currentQueueableJob instanceof AsyncProcessor.Acceptor 
+          && tempData != null
+        ) {
+          ((AsyncProcessor.Acceptor)currentQueueableJob).accept( tempData );
+        }
         currentQueueableJob.execute( context );
+        tempData = null;
         if ( successQueueableJob != null ) {
+          if ( currentQueueableJob instanceof AsyncProcessor.Emitter 
+            && currentQueueableJob instanceof AsyncProcessor.Acceptor
+          ) {
+            ((AsyncProcessor.Acceptor)successQueueableJob).accept( ((AsyncProcessor.Emitter)currentQueueableJob).emit() );
+          } 
           System.enqueueJob( 
             new AsyncUnit( successQueueableJob ) 
               .setProcessor( processor )
@@ -42,6 +54,11 @@ public class AsyncUnit  implements Queueable, Database.AllowsCallouts {
           return;
         }
         if ( processor.isNotEmpty() ) {
+          if ( currentQueueableJob instanceof AsyncProcessor.Emitter ) {
+            tempData = ((AsyncProcessor.Emitter)currentQueueableJob).emit();
+          } else {
+            tempData = null;
+          }
           System.enqueueJob( 
             processor.getFirstJob()
               .setProcessor( processor )

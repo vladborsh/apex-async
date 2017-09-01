@@ -64,4 +64,12 @@ public with sharing class AsyncProcessor {
     );
   }
 
+  public interface Emitter {
+    Object emit();
+  }
+
+  public interface Acceptor {
+    void accept( Object obj );
+  }
+
 }
