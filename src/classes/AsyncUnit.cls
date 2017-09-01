@@ -43,7 +43,7 @@ public class AsyncUnit  implements Queueable, Database.AllowsCallouts {
         tempData = null;
         if ( successQueueableJob != null ) {
           if ( currentQueueableJob instanceof AsyncProcessor.Emitter 
-            && currentQueueableJob instanceof AsyncProcessor.Acceptor
+            && successQueueableJob instanceof AsyncProcessor.Acceptor
           ) {
             ((AsyncProcessor.Acceptor)successQueueableJob).accept( ((AsyncProcessor.Emitter)currentQueueableJob).emit() );
           } 
