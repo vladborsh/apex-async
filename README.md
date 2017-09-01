@@ -14,7 +14,7 @@ First, one or more classes which represent business logic should implement Queue
 
 ### Demos
 
-Chain several tasks in one process and run it 
+Join several tasks in one process and run it 
 
 ```java
 AsyncProcessor aProcessor = new AsyncProcessor()
