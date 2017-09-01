@@ -26,10 +26,15 @@ public with sharing class AsyncProcessorTest {
 
   @isTest
   public static void testFail() {
-    AsyncProcessor aProcessor = new AsyncProcessor()
+    AsyncProcessor aProcessor = new AsyncProcessor(
+      new AsyncUnit( new AsyncUnitTest.TestAsyncFailedQueuable() )
+    )
     .fail( 
       new AsyncUnit( new AsyncUnitTest.TestAsyncQueuable() ) 
     );
+    Test.startTest();
+    aProcessor.execute();
+    Test.stopTest();
   }
 
   @isTest

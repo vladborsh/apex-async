@@ -73,7 +73,6 @@ public class AsyncUnit  implements Queueable, Database.AllowsCallouts {
           new AsyncUnit( failQueueableJob ) 
             .setProcessor( processor )
         );
-        return;
       } else if ( processor.getError() != null ) {
         System.enqueueJob( 
           new AsyncUnit( processor.getError() ) 
