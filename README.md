@@ -14,7 +14,7 @@ First, one or more classes which represent business logic should implement Queue
 
 ### Demos
 
-Join several tasks in one process and run it 
+Join several (**then**) tasks in one process with **AsyncProcessor** and run it 
 
 ```java
 AsyncProcessor aProcessor = new AsyncProcessor()
@@ -30,7 +30,19 @@ AsyncProcessor aProcessor = new AsyncProcessor()
 .execute();
 ```
 
-Use fail function in AsyncProcessor for general handling errors
+Create process with initial task
+
+```java
+AsyncProcessor aProcessor = new AsyncProcessor(
+  new AsyncUnit( new ContactRemoteUpdaterQueuable() )
+)
+.then( 
+  new AsyncUnit( new AccountUpdaterQueuable() ) 
+)
+.execute();
+```
+
+Use **fail** function in **AsyncProcessor** for general handling errors
 
 ```java
 AsyncProcessor aProcessor = new AsyncProcessor()
@@ -43,7 +55,7 @@ AsyncProcessor aProcessor = new AsyncProcessor()
 .execute();
 ```
 
-Use fail function in AsyncUnit for particular handling errors
+Use **fail** function in **AsyncUnit** for particular handling errors
 
 ```java
 AsyncProcessor aProcessor = new AsyncProcessor()
@@ -57,17 +69,18 @@ AsyncProcessor aProcessor = new AsyncProcessor()
 .execute();
 ```
 
-Use success function in AsyncUnit for handling success from particular operation
+Use **success** function in **AsyncUnit** for handling success from particular operation
 
 ```java
 AsyncProcessor aProcessor = new AsyncProcessor()
 .then( 
   new AsyncUnit( new AccountUpdaterQueuable() ) 
-    .succcess( new ContactRemoteUpdaterQueuable() )
+    .success( new ContactRemoteUpdaterQueuable() )
     .fail( new AccountUpdaterLogger() )
 )
 .then( 
   new AsyncUnit( new OpportunityJobQueuable() ) 
+    .success( new ContactRemoteUpdaterQueuable() )
     .fail( new OpportunityLogger() )
 )
 .execute();
